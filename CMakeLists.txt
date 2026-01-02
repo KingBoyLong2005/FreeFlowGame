@@ -25,7 +25,7 @@
 
 cmake_minimum_required(VERSION 3.22...4.1)
 
-set(APP_NAME Learning)
+set(APP_NAME FreeFlowGame)
 
 project(${APP_NAME})
 

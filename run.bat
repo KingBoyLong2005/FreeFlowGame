@@ -10,7 +10,7 @@ echo Entering run.bat directory: %myDir%
 
 cd /d %myDir%
 
-set APP_NAME=Learning
+set APP_NAME=FreeFlowGame
 set BUILD_DIR=build
 set BUILD_CFG=%1
 

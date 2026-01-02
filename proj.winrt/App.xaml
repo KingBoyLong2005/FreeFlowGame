@@ -6,7 +6,7 @@
 
     <Application.Resources>
 
-      <x:String x:Key="AppName">Learning</x:String>
+      <x:String x:Key="AppName">FreeFlowGame</x:String>
 
     </Application.Resources>
 </Application>
