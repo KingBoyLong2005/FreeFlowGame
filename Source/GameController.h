@@ -1,6 +1,7 @@
 #pragma once
 #include "BoardRenderer.h"
 #include "axmol/axmol.h"
+#include "UIManager.h"
 #include <set>
 
 enum class GameState {
@@ -16,8 +17,12 @@ public:
     bool init() override;
     
     void setBoardRenderer(BoardRenderer* board);
+    void setUIManager(UIManager* ui);
     void setDots(const std::vector<BoardRenderer::Dot>& dots);
     void setupMouseInput();
+    void resetLevel();
+    void checkLevelComplete();
+    void onLevelComplete();
 
     // Input state
     bool _isDragging = false;
@@ -45,10 +50,10 @@ public:
 
 private:
     BoardRenderer* _board = nullptr;
+    UIManager* _ui = nullptr;
     std::vector<BoardRenderer::Dot> _dots;
     std::vector<FixedPath> _fixedPaths;
     
-    void checkLevelComplete();
     void redrawPath();
     bool getDotColorAt(int row, int col, ax::Color32& outColor) const;
     bool isSameColorDotEnd(int r, int c) const;

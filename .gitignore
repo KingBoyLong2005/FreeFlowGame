@@ -118,7 +118,6 @@ CMakeSettings.json
 
 # ignore jniLibs android
 /**/jniLibs/*/*.so
-
 # Cmake files
 CMakeCache.txt
 CMakeFiles

@@ -1,4 +1,5 @@
 #include "BoardRenderer.h"
+#include "ColorPalette.h"
 
 using namespace ax;
 
@@ -70,32 +71,37 @@ void BoardRenderer::drawDots()
     {
         for (int c = 0; c < _levelCols; c++)
         {
-            if (r >= (int)_levelData.objects.size() || 
-                c >= (int)_levelData.objects[r].size())
-                continue;
-
             if (!_levelData.objects[r][c].empty())
             {
-                Color32 color = Color32::RED;
-                std::string obj = _levelData.objects[r][c];
+                std::string colorId = _levelData.objects[r][c];
                 
-                if (obj == "A") color = Color32::GREEN;
-                else if (obj == "B") color = Color32::BLUE;
-                else if (obj == "C") color = Color32::RED;
-                else if (obj == "D") color = Color32::MAGENTA;
-                else if (obj == "E") color = Color32::GRAY;
-
+                // Dùng bảng màu mới
+                Color32 color = ColorPalette::getColor(colorId);
+                
                 _dots.push_back({ r, c, color });
 
+                Vec2 center = gridToWorld(r, c);
+                float radius = 15.0f;
+                
+                // Vẽ viền trắng (vòng tròn lớn hơn)
                 _drawNode->drawSolidCircle(
-                    gridToWorld(r, c),
-                    12.0f,
-                    0,
-                    24,
+                    center,
+                    radius + 2.0f,  // Viền dày 2px
+                    0.0f,
+                    32,
+                    Color32::WHITE
+                );
+                
+                // Vẽ dot chính (đè lên viền)
+                _drawNode->drawSolidCircle(
+                    center,
+                    radius,
+                    0.0f,
+                    32,
                     color
                 );
                 
-                printf("Dot drawn: %s at (%d,%d)\n", obj.c_str(), r, c);
+                printf("Dot drawn: %s at (%d,%d)\n", colorId.c_str(), r, c);
             }
         }
     }

@@ -1,4 +1,6 @@
 #include "GameController.h"
+#include "LevelManager.h"
+#include "GameScene.h"
 
 using namespace ax;
 
@@ -15,29 +17,60 @@ void GameController::setBoardRenderer(BoardRenderer* board)
     _board = board;
 }
 
+void GameController::setUIManager(UIManager* ui)
+{
+    _ui = ui;
+}
+
 void GameController::setDots(const std::vector<BoardRenderer::Dot>& dots)
 {
     _dots = dots;
     printf("GameController received %zu dots\n", _dots.size());
 }
 
+void GameController::resetLevel()
+{
+    _fixedPaths.clear();
+    _currentPath.clear();
+    _isDragging = false;
+    
+    if (_ui)
+        _ui->_levelCompleted = false;
+
+    redrawPath();
+    printf("Level reset\n");
+}
+
 void GameController::checkLevelComplete()
 {
-    std::set<char> requiredIds;
+    // Đếm số màu cần hoàn thành
+    std::set<ax::Color32, ColorLess> uniqueColors;
     for (auto& d : _dots)
-        requiredIds.insert(d.col);
+        uniqueColors.insert(d.color);
 
-    if (_fixedPaths.size() != requiredIds.size())
+    printf("Checking completion: %zu paths vs %zu colors needed\n", 
+           _fixedPaths.size(), uniqueColors.size());
+
+    // Kiểm tra số path đã hoàn thành
+    if (_fixedPaths.size() != uniqueColors.size())
         return;
 
+    // Kiểm tra tất cả ô đã được lấp đầy
     std::set<std::pair<int, int>> covered;
     for (auto& p : _fixedPaths)
         for (auto& c : p.cells)
             covered.insert({ (int)c.x, (int)c.y });
 
-    if ((int)covered.size() != _board->_levelRows * _board->_levelCols)
+    int totalCells = _board->_levelRows * _board->_levelCols;
+    printf("Covered cells: %zu vs total: %d\n", covered.size(), totalCells);
+
+    if ((int)covered.size() != totalCells)
         return;
 
+    // Hoàn thành level!
+    if (_ui)
+        _ui->showCompletedPopup();
+    
     printf("🎉 LEVEL COMPLETED! 🎉\n");
 }
 
@@ -88,6 +121,15 @@ void GameController::setupMouseInput()
     listener->onMouseDown = [this](EventMouse* event) -> bool
     {
         Vec2 world = event->getLocation();
+        
+        // Kiểm tra click vào reset button
+        if (_ui && _ui->_resetBtnRect.containsPoint(world))
+        {
+            printf("Reset button clicked\n");
+            resetLevel();
+            return true;
+        }
+
         Vec2 local = world - _board->_gridOffset;
 
         int r, c;
@@ -154,6 +196,7 @@ void GameController::setupMouseInput()
             {
                 _currentPath.pop_back();
                 redrawPath();
+                onLevelComplete();
                 return true;
             }
         }
@@ -228,4 +271,15 @@ bool GameController::isSameColorDotEnd(int r, int c) const
             return true;
     }
     return false;
+}
+void GameController::onLevelComplete()
+{
+    auto levelMgr = LevelManager::getInstance();
+    levelMgr->nextLevel();
+    
+    // Reload scene with new level
+    auto newScene = GameScene::create();
+    Director::getInstance()->replaceScene(
+        TransitionFade::create(0.5f, newScene)
+    );
 }

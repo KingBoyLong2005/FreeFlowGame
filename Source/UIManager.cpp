@@ -48,3 +48,38 @@ void UIManager::drawResetButton()
     
     printf("Reset button drawn at (%.1f, %.1f)\n", posBtn.x, posBtn.y);
 }
+
+void UIManager::showCompletedPopup()
+{
+    if (_levelCompleted) 
+        return;
+        
+    _levelCompleted = true;
+
+    auto director = Director::getInstance();
+    auto visibleSize = director->getVisibleSize();
+    auto origin = director->getVisibleOrigin();
+    
+    Vec2 center = origin + visibleSize / 2;
+
+    _uiNode->drawSolidRect(
+        center - Vec2(140, 60),
+        center + Vec2(140, 60),
+        Color32(0, 0, 0, 180)
+    );
+
+    _uiNode->drawRect(
+        center - Vec2(140, 60),
+        center + Vec2(140, 60),
+        Color32::WHITE
+    );
+
+    auto label = Label::createWithTTF("LEVEL COMPLETED!", "fonts/Marker Felt.ttf", 28);
+    if (label)
+    {
+        label->setPosition(center);
+        this->addChild(label, 22);
+    }
+
+    printf("🎉 LEVEL COMPLETED POPUP SHOWN 🎉\n");
+}
