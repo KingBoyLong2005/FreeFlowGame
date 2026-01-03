@@ -35,10 +35,38 @@ void GameController::resetLevel()
     _isDragging = false;
     
     if (_ui)
+    {
+        _ui->hideCompletedPopup();
         _ui->_levelCompleted = false;
+    }
 
     redrawPath();
     printf("Level reset\n");
+}
+
+void GameController::nextLevel()
+{
+    auto levelMgr = LevelManager::getInstance();
+    levelMgr->nextLevel();
+    
+    printf("Loading next level: %d\n", levelMgr->getCurrentLevel() + 1);
+    
+    // Reload scene với level mới
+    auto newScene = GameScene::create();
+    Director::getInstance()->replaceScene(
+        TransitionFade::create(0.5f, newScene)
+    );
+}
+
+void GameController::restartCurrentLevel()
+{
+    printf("Restarting current level\n");
+    
+    // Reload scene với level hiện tại
+    auto newScene = GameScene::create();
+    Director::getInstance()->replaceScene(
+        TransitionFade::create(0.3f, newScene)
+    );
 }
 
 void GameController::checkLevelComplete()
@@ -85,11 +113,24 @@ void GameController::redrawPath()
     // Vẽ dots
     for (auto& d : _dots)
     {
+        Vec2 center = _board->gridToWorld(d.row, d.col);
+        float radius = 15.0f;
+        
+        // Vẽ viền trắng
         _board->_drawNode->drawSolidCircle(
-            _board->gridToWorld(d.row, d.col),
-            12.0f,
-            0,
-            24,
+            center,
+            radius + 2.0f,
+            0.0f,
+            32,
+            Color32::WHITE
+        );
+        
+        // Vẽ dot chính
+        _board->_drawNode->drawSolidCircle(
+            center,
+            radius,
+            0.0f,
+            32,
             d.color
         );
     }
@@ -101,7 +142,7 @@ void GameController::redrawPath()
         {
             Vec2 a = _board->gridToWorld(p.cells[i - 1].x, p.cells[i - 1].y);
             Vec2 b = _board->gridToWorld(p.cells[i].x, p.cells[i].y);
-            _board->_drawNode->drawSegment(a, b, 6.0f, p.color);
+            _board->_drawNode->drawSegment(a, b, 8.0f, p.color);
         }
     }
 
@@ -110,7 +151,7 @@ void GameController::redrawPath()
     {
         Vec2 a = _board->gridToWorld(_currentPath[i - 1].x, _currentPath[i - 1].y);
         Vec2 b = _board->gridToWorld(_currentPath[i].x, _currentPath[i].y);
-        _board->_drawNode->drawSegment(a, b, 6.0f, _currentColor);
+        _board->_drawNode->drawSegment(a, b, 8.0f, _currentColor);
     }
 }
 
@@ -121,6 +162,22 @@ void GameController::setupMouseInput()
     listener->onMouseDown = [this](EventMouse* event) -> bool
     {
         Vec2 world = event->getLocation();
+        
+        // Kiểm tra click vào Next Level button
+        if (_ui && _ui->_levelCompleted && _ui->_nextLevelBtnRect.containsPoint(world))
+        {
+            printf("Next Level button clicked\n");
+            nextLevel();
+            return true;
+        }
+        
+        // Kiểm tra click vào Restart button
+        if (_ui && _ui->_levelCompleted && _ui->_restartBtnRect.containsPoint(world))
+        {
+            printf("Restart button clicked\n");
+            restartCurrentLevel();
+            return true;
+        }
         
         // Kiểm tra click vào reset button
         if (_ui && _ui->_resetBtnRect.containsPoint(world))
@@ -196,7 +253,6 @@ void GameController::setupMouseInput()
             {
                 _currentPath.pop_back();
                 redrawPath();
-                onLevelComplete();
                 return true;
             }
         }
@@ -271,15 +327,4 @@ bool GameController::isSameColorDotEnd(int r, int c) const
             return true;
     }
     return false;
-}
-void GameController::onLevelComplete()
-{
-    auto levelMgr = LevelManager::getInstance();
-    levelMgr->nextLevel();
-    
-    // Reload scene with new level
-    auto newScene = GameScene::create();
-    Director::getInstance()->replaceScene(
-        TransitionFade::create(0.5f, newScene)
-    );
 }

@@ -22,7 +22,8 @@ public:
     void setupMouseInput();
     void resetLevel();
     void checkLevelComplete();
-    void onLevelComplete();
+    void nextLevel();
+    void restartCurrentLevel();
 
     // Input state
     bool _isDragging = false;
